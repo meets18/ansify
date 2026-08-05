@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ansify-cli"
+version = "0.1.0"
+description = "A Python CLI tool that simplifies common Ansible workflows through interactive playbook generation, validation, execution, and Vault management."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.9"
+authors = [
+    { name = "Meet Sharma" },
+]
+keywords = ["ansible", "playbook", "cli", "automation", "rhce", "devops", "vault"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: System :: Systems Administration",
+]
+dependencies = [
+    "typer>=0.9",
+    "rich>=13",
+    "PyYAML>=6",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "build>=1", "twine>=5"]
+
+[project.scripts]
+ansify = "ansify.cli:app"
+
+[tool.setuptools.packages.find]
+include = ["ansify*"]
+
+[tool.setuptools.package-data]
+ansify = ["templates/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
