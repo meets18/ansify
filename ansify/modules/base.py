@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Callable
+from typing import Callable, Optional
 
 
 @dataclass
@@ -14,14 +14,14 @@ class Field:
     label: str
     kind: str = "text"  # text | choice | bool | int | multiline | optional
     choices: list[str] = field(default_factory=list)
-    default: str | None = None
+    default: Optional[str] = None
     required: bool = False
-    help: str | None = None
+    help: Optional[str] = None
     # Only ask when an earlier field (key) equals value; e.g. state == "present"
-    condition: tuple[str, str] | None = None
+    condition: Optional[tuple[str, str]] = None
     # Only ask when the selected module equals value (used by choice modules)
-    if_module: str | None = None
-    validate: Callable[[str], bool] | None = None
+    if_module: Optional[str] = None
+    validate: Optional[Callable[[str], bool]] = None
 
 
 @dataclass
@@ -35,7 +35,7 @@ class VerifyStep:
     module: str
     params: dict = field(default_factory=dict)
     name: str = ""
-    register: str | None = None
+    register: Optional[str] = None
 
 
 @dataclass
@@ -48,6 +48,6 @@ class ModuleDef:
     category: str
     fields: list[Field] = field(default_factory=list)
     verify: list[VerifyStep] = field(default_factory=list)
-    verify_prompt: str | None = None  # question shown before adding verification
+    verify_prompt: Optional[str] = None  # question shown before adding verification
     needs_become: bool = True
     task_name: str = ""  # template with {field} placeholders for the task name

@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
+from typing import Optional
+
 import yaml
 
 from ansify.models.playbook import Playbook
 from ansify.models.task import Task
 
 
-def parse_playbook(path: str) -> tuple[Playbook | None, list[str]]:
+def parse_playbook(path: str) -> tuple[Optional[Playbook], list[str]]:
     """Parse a playbook file into a Playbook object.
 
     Returns (playbook, errors); errors is a list of human-readable messages.

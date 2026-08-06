@@ -7,6 +7,8 @@ module is mostly adding one definition file.
 
 from __future__ import annotations
 
+from typing import Optional
+
 from ansify.modules.base import Field, ModuleDef, VerifyStep  # noqa: F401  (re-exported)
 from ansify.modules import (
     authorized_key,
@@ -55,7 +57,7 @@ for _m in MODULES:
     CATEGORIES.setdefault(_m.category, []).append(_m)
 
 
-def get_module(key: str) -> ModuleDef | None:
+def get_module(key: str) -> Optional[ModuleDef]:
     """Return the module definition for ``key`` or None."""
     for _m in MODULES:
         if _m.key == key:

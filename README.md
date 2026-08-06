@@ -39,6 +39,11 @@ pip install -e .
 ansify --version
 ```
 
+> **RHEL 9 note**: the bundled setuptools (59.6) predates PEP 660 and will
+> fail with "setup.py or setup.cfg not found". Upgrade it first inside the
+> environment:
+> `pip install --upgrade pip setuptools wheel`
+
 ## Install on RHEL 9 / 10
 
 ```bash

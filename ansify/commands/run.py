@@ -5,6 +5,7 @@ from __future__ import annotations
 import subprocess
 import time
 from pathlib import Path
+from typing import Optional
 
 import typer
 from rich.console import Console
@@ -16,8 +17,8 @@ err = Console(stderr=True)
 
 def run(
     path: str,
-    inventory: str | None = typer.Option(None, "--inventory", "-i", help="Inventory file"),
-    tags: str | None = typer.Option(None, "--tags", "-t", help="Only run tagged tasks"),
+    inventory: Optional[str] = typer.Option(None, "--inventory", "-i", help="Inventory file"),
+    tags: Optional[str] = typer.Option(None, "--tags", "-t", help="Only run tagged tasks"),
     extra_vars: list[str] = typer.Option(None, "--extra-vars", "-e", help="Extra variables (repeatable)"),
 ) -> None:
     """Execute a playbook and show a pass/fail summary."""

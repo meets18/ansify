@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Union
 
 
-def read_inventory(path: str | Path) -> list[str]:
+def read_inventory(path: Union[str, Path]) -> list[str]:
     """Return group names defined in an inventory file.
 
     Handles INI-style inventories. Returns an empty list on any failure.

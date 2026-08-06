@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Union
 
 
 def ensure_yaml_extension(name: str) -> str:
@@ -10,7 +11,7 @@ def ensure_yaml_extension(name: str) -> str:
     return name if name.endswith((".yml", ".yaml")) else f"{name}.yml"
 
 
-def write_playbook(path: str | Path, content: str, overwrite: bool = True) -> Path:
+def write_playbook(path: Union[str, Path], content: str, overwrite: bool = True) -> Path:
     """Write playbook content to ``path``. Returns the resolved Path."""
     target = Path(path)
     if target.exists() and not overwrite:

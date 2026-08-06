@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Optional
+
 import typer
 from rich.console import Console
 from rich.panel import Panel
@@ -144,7 +146,7 @@ def _reorder_task(playbook: Playbook) -> None:
     _list_tasks(playbook)
 
 
-def _pick_task(playbook: Playbook, prompt: str) -> int | None:
+def _pick_task(playbook: Playbook, prompt: str) -> Optional[int]:
     if not playbook.tasks:
         console.print("[yellow]No tasks yet.[/]")
         return None
@@ -166,7 +168,7 @@ def _pick_module() -> ModuleDef:
         return modules[pick - 1]
 
 
-def _collect_task(module: ModuleDef, defaults: dict | None = None) -> Task:
+def _collect_task(module: ModuleDef, defaults: Optional[dict] = None) -> Task:
     defaults = defaults or {}
     values: dict = {}
     effective_module = module.module
@@ -209,7 +211,7 @@ def _suggest_name(module: ModuleDef, values: dict) -> str:
         return module.label
 
 
-def _ask_field(field) -> str | None:
+def _ask_field(field) -> Optional[str]:
     label = f"{field.label}" + (" [required]" if field.required else "")
     while True:
         if field.kind == "choice":
@@ -234,7 +236,7 @@ def _ask_field(field) -> str | None:
         err.print("[red]This field is required.[/]")
 
 
-def _ask_text(label: str, default: str | None = None) -> str:
+def _ask_text(label: str, default: Optional[str] = None) -> str:
     return typer.prompt(label, default=default or "").strip()
 
 

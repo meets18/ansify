@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Optional
 
 
 @dataclass
@@ -13,7 +14,7 @@ class Task:
     params: dict = field(default_factory=dict)
     name: str = ""
     verify: list["Task"] = field(default_factory=list)  # verification sub-tasks
-    register: str | None = None  # variable storing this task's result
+    register: Optional[str] = None  # variable storing this task's result
 
     def to_dict(self) -> dict:
         """Serialize into a playbook task mapping (used by the generator)."""
