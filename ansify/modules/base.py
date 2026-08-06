@@ -51,3 +51,4 @@ class ModuleDef:
     verify_prompt: Optional[str] = None  # question shown before adding verification
     needs_become: bool = True
     task_name: str = ""  # template with {field} placeholders for the task name
+    task_name_absent: Optional[str] = None  # used instead when state == "absent"

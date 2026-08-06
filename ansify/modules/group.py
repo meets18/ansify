@@ -8,6 +8,7 @@ MODULE = ModuleDef(
     label="Group",
     category="User Management",
     task_name="Create group {name}",
+    task_name_absent="Delete group {name}",
     needs_become=True,
     fields=[
         Field("name", "Group name", kind="text", required=True),

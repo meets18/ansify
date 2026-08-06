@@ -8,6 +8,7 @@ MODULE = ModuleDef(
     label="User",
     category="User Management",
     task_name="Create user {name}",
+    task_name_absent="Delete user {name}",
     needs_become=True,
     fields=[
         Field("name", "Username", kind="text", required=True),

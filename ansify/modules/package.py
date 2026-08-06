@@ -8,6 +8,7 @@ MODULE = ModuleDef(
     label="Package",
     category="Package Management",
     task_name="Install {name}",
+    task_name_absent="Remove {name}",
     needs_become=True,
     fields=[
         Field("name", "Package name", kind="text", required=True, help="e.g. httpd, nginx, vim"),

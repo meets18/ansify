@@ -209,10 +209,15 @@ def _collect_task(module: ModuleDef, defaults: Optional[dict] = None) -> Task:
 
 
 def _suggest_name(module: ModuleDef, values: dict) -> str:
-    if not module.task_name:
+    template = (
+        module.task_name_absent
+        if values.get("state") == "absent" and module.task_name_absent
+        else module.task_name
+    )
+    if not template:
         return module.label
     try:
-        return module.task_name.format(**values)
+        return template.format(**values)
     except (KeyError, IndexError):
         return module.label
 
