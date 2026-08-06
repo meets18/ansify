@@ -22,8 +22,94 @@ _LEADING_DIGIT = re.compile(r"^[-+]?\d")
 _LEADING_SYMBOL = re.compile(r"^[{*&!|>\[\]?#@`'\"-]")
 
 
-class AnsibleDumper(yaml.SafeDumper):
-    """SafeDumper that quotes strings Ansible would mis-parse."""
+class _IndentedEmitter(yaml.emitter.Emitter):
+    """Emit block sequences indented under their mapping key."""
+
+    def expect_block_sequence(self) -> None:
+        self.increase_indent(flow=False, indentless=False)
+        self.state = self.expect_first_block_sequence_item
+
+
+class AnsibleDumper(
+    _IndentedEmitter,
+    yaml.serializer.Serializer,
+    yaml.representer.SafeRepresenter,
+    yaml.resolver.Resolver,
+):
+    """SafeDumper variant producing course-style playbook formatting."""
+
+    def __init__(
+        self,
+        stream,
+        default_style=None,
+        default_flow_style=False,
+        canonical=None,
+        indent=None,
+        width=None,
+        allow_unicode=None,
+        line_break=None,
+        encoding=None,
+        explicit_start=None,
+        explicit_end=None,
+        version=None,
+        tags=None,
+        sort_keys=True,
+    ):
+        _IndentedEmitter.__init__(
+            self,
+            stream,
+            canonical=canonical,
+            indent=indent,
+            width=width,
+            allow_unicode=allow_unicode,
+            line_break=line_break,
+        )
+        yaml.serializer.Serializer.__init__(
+            self,
+            encoding=encoding,
+            explicit_start=explicit_start,
+            explicit_end=explicit_end,
+            version=version,
+            tags=tags,
+        )
+        yaml.representer.SafeRepresenter.__init__(
+            self,
+            default_style=default_style,
+            default_flow_style=default_flow_style,
+            sort_keys=sort_keys,
+        )
+        yaml.resolver.Resolver.__init__(self)
+
+
+def _represent_bool(dumper: yaml.Dumper, data: bool) -> yaml.Node:
+    """Render booleans as yes/no instead of true/false."""
+    return dumper.represent_scalar(
+        "tag:yaml.org,2002:bool", "yes" if data else "no"
+    )
+
+
+def generate_yaml(playbook: Playbook) -> str:
+    """Serialize a Playbook into a YAML document string."""
+    tasks: list[dict] = []
+    for task in playbook.tasks:
+        tasks.append(task.to_dict())
+        tasks.extend(verify.to_dict() for verify in task.verify)
+    document = {
+        "name": playbook.name,
+        "hosts": playbook.hosts,
+        "become": playbook.become,
+        "tasks": tasks,
+    }
+    text = yaml.dump(
+        [document],
+        Dumper=AnsibleDumper,
+        explicit_start=True,
+        default_flow_style=False,
+        sort_keys=False,
+        allow_unicode=True,
+        width=1000,
+    )
+    return text.replace("\n  tasks:\n", "\n\n  tasks:\n", 1)
 
 
 def _should_quote(value: str) -> bool:
@@ -63,25 +149,4 @@ def _represent_str(dumper: yaml.Dumper, data: str) -> yaml.Node:
 
 
 AnsibleDumper.add_representer(str, _represent_str)
-
-
-def generate_yaml(playbook: Playbook) -> str:
-    """Serialize a Playbook into a YAML document string."""
-    tasks: list[dict] = []
-    for task in playbook.tasks:
-        tasks.append(task.to_dict())
-        tasks.extend(verify.to_dict() for verify in task.verify)
-    document = {
-        "name": playbook.name,
-        "hosts": playbook.hosts,
-        "become": playbook.become,
-        "tasks": tasks,
-    }
-    return yaml.dump(
-        document,
-        Dumper=AnsibleDumper,
-        default_flow_style=False,
-        sort_keys=False,
-        allow_unicode=True,
-        width=1000,
-    )
+AnsibleDumper.add_representer(bool, _represent_bool)

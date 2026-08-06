@@ -262,10 +262,30 @@ def _ask_hosts() -> str:
     if inventory:
         groups = inventory_reader.read_inventory(inventory)
         if groups:
-            pick = _menu("Select host group", [*groups, "Enter manually"])
-            if pick <= len(groups):
-                return groups[pick - 1]
+            picked = _menu_multi(
+                "Select host groups (multiple allowed, e.g. 1,3)",
+                ["all", *groups],
+            )
+            if "all" in picked:
+                return "all"
+            return ",".join(picked)
     return _ask_text("Hosts", default="all")
+
+
+def _menu_multi(prompt: str, options: list[str]) -> list[str]:
+    """Numbered menu allowing several selections (e.g. '1,3')."""
+    console.print(f"\n[bold cyan]{prompt}[/]")
+    for i, option in enumerate(options, start=1):
+        console.print(f"  [bold]{i}[/] {option}")
+    while True:
+        raw = typer.prompt("", prompt_suffix="> ") or ""
+        try:
+            picks = {int(part) for part in raw.replace(",", " ").split()}
+        except ValueError:
+            picks = set()
+        if picks and all(1 <= p <= len(options) for p in picks):
+            return [options[p - 1] for p in sorted(picks)]
+        err.print(f"[red]Enter numbers between 1 and {len(options)} (e.g. 1,3).[/]")
 
 
 def _menu(prompt: str, options: list[str]) -> int:

@@ -230,8 +230,8 @@ The only place where playbook objects become YAML text.
 | `_AMBIGUOUS` set | `yes/no/on/off/true/false/y/n/null/none/~` — values that YAML 1.1 would turn into booleans/null. Ansible parses YAML 1.1, so these MUST be quoted |
 | `_should_quote(value)` | Decision function: quotes strings that (a) match ambiguous words, (b) start with a digit but aren't numbers (`8080/tcp`), (c) look like perms (`0644` — leading zero would be parsed as octal int), (d) start with YAML syntax chars (`{`, `*`, `&`, `- `...), (e) contain `: ` or ` #`. Returns `True` → single-quoted |
 | `_represent_str()` | Custom PyYAML representer: **multiline strings → `|` block scalar** (`|-` when no trailing newline), ambiguous strings → single quotes, everything else plain |
-| `AnsibleDumper` | `yaml.SafeDumper` subclass registered with the representer |
-| `generate_yaml(playbook)` | Builds the top-level document dict (`name`, `hosts`, `become`, `tasks`) then flattens each task **plus its verify sub-tasks** into one `tasks` list. Dumps with `sort_keys=False` (preserve field order), `allow_unicode=True`, `width=1000` (no wrapping of long SSH keys), `default_flow_style=False` (block style) |
+| `AnsibleDumper` | Custom `SafeDumper` built on an `_IndentedEmitter` subclass that emits block sequences indented under their mapping key (course-style `tasks:` + indented `- name:` items). Also registers a bool representer rendering `yes`/`no` instead of `true`/`false` |
+| `generate_yaml(playbook)` | Builds the top-level document dict (`name`, `hosts`, `become`, `tasks`), wraps it in a list (single-play list form, like hand-written playbooks), and flattens each task **plus its verify sub-tasks** into one `tasks` list. Dumps with `explicit_start=True` (`---` header), `sort_keys=False` (preserve field order), `allow_unicode=True`, `width=1000` (no wrapping of long SSH keys), `default_flow_style=False` (block style), then inserts a blank line before `tasks:` |
 
 The `generators/__init__.py` re-exports `generate_yaml`.
 
@@ -281,8 +281,8 @@ Everything the user sees when running `ansify` / `ansify create`.
 | `_collect_task(module, defaults)` | **The generic engine**: loops over `module.fields`, skipping fields whose `condition`/`if_module` doesn't match, converts `bool` fields to Python booleans and `int` fields to integers, handles the `__module__` field (command vs shell), builds the `Task`, suggests a name from `task_name.format(**values)`, then optionally calls `apply_verification` |
 | `_suggest_name()` | Formats the module's `task_name` template with collected values; falls back to the module label if a placeholder is missing |
 | `_ask_field()` | One prompt per field kind: choice → numbered menu, bool → yes/no confirm, int → integer validation loop, multiline → lines until an empty line, text/optional → plain prompt with required-loop |
-| `_ask_text` / `_ask_bool` / `_ask_multiline` / `_menu` | Low-level I/O helpers over `typer.prompt`/`typer.confirm` with Rich-printed menus and error messages |
-| `_ask_hosts()` | Optionally reads an inventory file via `inventory_reader` to offer group names; falls back to manual entry (default `all`) |
+| `_ask_text` / `_ask_bool` / `_ask_multiline` / `_menu` / `_menu_multi` | Low-level I/O helpers over `typer.prompt`/`typer.confirm` with Rich-printed menus and error messages; `_menu_multi` accepts several numbers (e.g. `1,3`) and returns the matching options |
+| `_ask_hosts()` | Optionally reads an inventory file via `inventory_reader` to offer group names plus an always-present `all` option; multi-select (`1,3`) — choosing `all` wins, multiple groups are joined with commas (`web,db`); falls back to manual entry (default `all`) |
 | `_check_flow` / `_run_flow` / `_vault_flow` | Hub sub-menus that delegate to the other commands (lazy imports avoid circular imports) |
 
 ### `ansify/commands/check.py`

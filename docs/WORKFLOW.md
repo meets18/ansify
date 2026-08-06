@@ -61,7 +61,9 @@ Start
  │
  ├─ 1. Playbook name                     ──► _ask_text
  ├─ 2. Inventory file (optional)         ──► _ask_hosts → inventory_reader
- ├─ 3. Hosts (group or "all")
+ ├─ 3. Hosts (multi-select, "all" always
+ │        available; several groups join
+ │        with commas, e.g. web,db)
  ├─ 4. Become (sudo)?  yes/no
  │
  ├─ TASK LOOP (repeat until "Generate")
