@@ -31,18 +31,24 @@ ansify --version
 > Dependencies (typer, rich, PyYAML) are pulled from PyPI automatically.
 > For an isolated global install, use `pipx install <same URL>`.
 
-## Install from source (development)
+## Install from source (any OS)
+
+Clone and install with the same commands on any machine (RHEL, Ubuntu, WSL,
+Windows):
 
 ```bash
-python3 -m venv .venv && source .venv/bin/activate   # or python -m venv .venv
+git clone https://github.com/meets18/ansify.git ~/ansify
+cd ~/ansify
+
+python3 -m venv .venv && source .venv/bin/activate   # Windows: python -m venv .venv; .venv\Scripts\activate
+pip install --upgrade pip setuptools wheel
 pip install -e .
 ansify --version
 ```
 
-> **RHEL 9 note**: the bundled setuptools (59.6) predates PEP 660 and will
-> fail with "setup.py or setup.cfg not found". Upgrade it first inside the
-> environment:
-> `pip install --upgrade pip setuptools wheel`
+> The `pip install --upgrade pip setuptools wheel` step is required on
+> RHEL 9: its bundled setuptools (59.6) predates PEP 660 and will otherwise
+> fail with "setup.py or setup.cfg not found".
 
 ## Install on RHEL 9 / 10
 
@@ -53,7 +59,8 @@ sudo dnf install -y ansible-core
 # 2. Ansible collections used by generated playbooks
 ansible-galaxy collection install ansible.posix community.general
 
-# 3. Ansify (same GitHub Release URL as above, or pip install -e .)
+# 3. Ansify (same GitHub Release URL as above, or git clone + install
+#    from source as shown in the previous section)
 pip install https://github.com/meets18/ansify/releases/download/v0.1.0/ansify_cli-0.1.0-py3-none-any.whl
 ```
 
