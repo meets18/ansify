@@ -19,7 +19,7 @@ ansify/
 │   ├── models/          ← in-memory playbook objects (the core data)
 │   ├── modules/         ← 18 module definitions that drive the wizard
 │   ├── generators/      ← Playbook object → YAML text
-│   ├── commands/        ← create / check / run / vault CLI commands
+│   ├── commands/        ← create / check / vault CLI commands
 │   ├── validators/      ← YAML parse + ansible syntax-check wrappers
 │   ├── utils/           ← inventory reader, yaml writer, verification builder
 │   └── templates/       ← drop Jinja2 templates for `template` tasks here
@@ -94,7 +94,6 @@ The Typer entry point. What each piece does:
 | `app = typer.Typer(...)` | Creates the app. `invoke_without_command=True` allows running with **no** subcommand, which opens the interactive hub |
 | `app.command("create")(create.create)` | Registers `ansify create` → wizard in `commands/create.py` |
 | `app.command("check")(check.check)` | Registers `ansify check <file>` |
-| `app.command("run")(run.run)` | Registers `ansify run <file>` |
 | `app.add_typer(vault.app, name="vault")` | Nests the vault sub-app → `ansify vault encrypt/decrypt/view` |
 | `@app.callback(...)` | Runs before any command. `--version`/`-V` prints the version and exits. If **no** subcommand was given, calls `create.menu()` — the interactive hub |
 
@@ -271,8 +270,8 @@ Everything the user sees when running `ansify` / `ansify create`.
 | Function | What it does |
 |---|---|
 | `create()` | Main wizard: name → hosts → become → **task loop** → save. Each step calls a small helper |
-| `menu()` | The interactive hub (`ansify` with no args): Create / Check / Run / Vault / Quit, looping until Quit |
-| `_save(playbook)` | Asks filename (default = playbook name slugged to `snake_case.yml`), prints the **YAML preview** in a Rich panel, asks to save, then offers Check and Run |
+| `menu()` | The interactive hub (`ansify` with no args): Create / Check / Vault / Quit, looping until Quit |
+| `_save(playbook)` | Asks filename (default = playbook name slugged to `snake_case.yml`), prints the **YAML preview** in a Rich panel, asks to save, then offers Check |
 | `_manage_tasks()` | Routes edit/delete/reorder actions |
 | `_edit_task()` | Re-collects a chosen task's fields via `_collect_task(module, defaults)` and replaces it |
 | `_delete_task()` / `_reorder_task()` | Thin wrappers over `Playbook.remove_task` / `move_task` |
@@ -283,17 +282,12 @@ Everything the user sees when running `ansify` / `ansify create`.
 | `_ask_field()` | One prompt per field kind: choice → numbered menu, bool → yes/no confirm, int → integer validation loop, multiline → lines until an empty line, text/optional → plain prompt with required-loop |
 | `_ask_text` / `_ask_bool` / `_ask_multiline` / `_menu` / `_menu_multi` | Low-level I/O helpers over `typer.prompt`/`typer.confirm` with Rich-printed menus and error messages; `_menu_multi` accepts several numbers (e.g. `1,3`) and returns the matching options |
 | `_ask_hosts()` | Optionally reads an inventory file via `inventory_reader` to offer group names plus an always-present `all` option; multi-select (`1,3`) — choosing `all` wins, multiple groups are joined with commas (`web,db`); falls back to manual entry (default `all`) |
-| `_check_flow` / `_run_flow` / `_vault_flow` | Hub sub-menus that delegate to the other commands (lazy imports avoid circular imports) |
+| `_check_flow` / `_vault_flow` | Hub sub-menus that delegate to the other commands (lazy imports avoid circular imports) |
 
 ### `ansify/commands/check.py`
 | Function | What it does |
 |---|---|
 | `check(path)` | Runs `parser.parse_playbook` — if structural errors: red Rich table + exit 1. If OK: green "YAML OK", then `syntax.syntax_check`; shows a Level/Message table (ERROR vs WARNING), red failure + exit 1, or green "Playbook is valid." |
-
-### `ansify/commands/run.py`
-| Function | What it does |
-|---|---|
-| `run(path, inventory, tags, extra_vars)` | Validates the path exists, builds `ansible-playbook <path> [-i inv] [-t tags] [-e var]...`, runs it via subprocess while timing with `time.monotonic()`, then prints an execution summary Rich table (exit code, elapsed seconds, SUCCESS/FAILED status). Fails gracefully when Ansible isn't installed |
 
 ### `ansify/commands/vault.py`
 | Function | What it does |
@@ -359,6 +353,5 @@ Placeholder documentation: users drop Jinja2 templates (referenced by `template`
 | "How is YAML produced?" | `generators/yaml_generator.py` |
 | "How do tasks get verification steps?" | `utils/verification.py` |
 | "How is a file validated?" | `validators/parser.py` (structure), `validators/syntax.py` (ansible) |
-| "How is a playbook executed?" | `commands/run.py` |
 | "How are secrets handled?" | `commands/vault.py` |
 | "How do I add module #19?" | New `modules/my_module.py` + one line in `modules/__init__.py` |

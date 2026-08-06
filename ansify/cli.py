@@ -4,18 +4,17 @@ import typer
 from rich.console import Console
 
 from ansify import __version__
-from ansify.commands import check, create, run, vault
+from ansify.commands import check, create, vault
 
 app = typer.Typer(
     name="ansify",
     add_completion=False,
     invoke_without_command=True,
-    help="Interactive Ansible playbook generation, validation, execution, and Vault.",
+    help="Interactive Ansible playbook generation, validation, and Vault.",
 )
 
 app.command("create")(create.create)
 app.command("check")(check.check)
-app.command("run")(run.run)
 app.add_typer(vault.app, name="vault")
 
 

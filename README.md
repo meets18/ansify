@@ -1,7 +1,7 @@
 # Ansify
 
 A Python CLI tool that simplifies common Ansible workflows through interactive
-playbook generation, validation, execution, and Vault management.
+playbook generation, validation, and Vault management.
 
 **Developer:** Meet Sharma
 
@@ -13,7 +13,6 @@ playbook generation, validation, execution, and Vault management.
   Authorized Key), with built-in per-module verification tasks.
 - **Check** — local YAML validation plus `ansible-playbook --syntax-check` with
   simplified error output.
-- **Run** — execute a playbook with pass/fail summary and elapsed time.
 - **Vault** — encrypt, decrypt, and view secrets via `ansible-vault`.
 
 ## Install (GitHub Releases)
@@ -53,7 +52,7 @@ ansify --version
 ## Install on RHEL 9 / 10
 
 ```bash
-# 1. Ansible (needed for check / run / vault)
+# 1. Ansible (needed for check / vault)
 sudo dnf install -y ansible-core
 
 # 2. Ansible collections used by generated playbooks
@@ -80,8 +79,6 @@ git push origin v0.1.0    # GitHub Actions builds and attaches the wheel to a Re
 ansify                # interactive mode (menu hub)
 ansify create         # guided playbook wizard
 ansify check web.yml  # validate + syntax check
-ansify run web.yml    # execute a playbook
-ansify run web.yml -i inventory.ini --tags deploy
 ansify vault encrypt secrets.yml
 ansify vault decrypt secrets.yml
 ansify vault view secrets.yml
@@ -105,7 +102,7 @@ ansify/
 ├── models/                 # Playbook + Task objects (in-memory playbook)
 ├── modules/                # 18 module definitions driving the wizard
 ├── generators/             # Playbook object -> YAML serialization
-├── commands/               # create / check / run / vault
+├── commands/               # create / check / vault
 ├── validators/             # YAML parsing + syntax check wrappers
 ├── utils/                  # inventory reader, yaml writer, verification
 └── templates/              # drop Jinja2 templates referenced by template tasks
@@ -114,6 +111,6 @@ ansify/
 ## Requirements
 
 - Python 3.9+
-- Ansible (ansible-core) for `check`, `run`, and `vault` commands —
-  Ansify builds playbooks on any OS, but executing them requires a Linux
-  environment (RHEL, WSL, or a managed Linux host).
+- Ansible (ansible-core) for `check` and `vault` commands —
+  Ansify builds playbooks on any OS, but validating and managing secrets
+  requires a Linux environment (RHEL, WSL, or a managed Linux host).

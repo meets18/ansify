@@ -47,15 +47,13 @@ def menu() -> None:
     while True:
         choice = _menu(
             "Choose an action",
-            ["Create a playbook", "Check a playbook", "Run a playbook", "Vault", "Quit"],
+            ["Create a playbook", "Check a playbook", "Vault", "Quit"],
         )
         if choice == 1:
             create()
         elif choice == 2:
             _check_flow()
         elif choice == 3:
-            _run_flow()
-        elif choice == 4:
             _vault_flow()
         else:
             break
@@ -63,7 +61,6 @@ def menu() -> None:
 
 def _save(playbook: Playbook) -> None:
     from ansify.commands.check import check as check_cmd
-    from ansify.commands.run import run as run_cmd
 
     filename = _ask_text(
         "Filename to save", default=ensure_yaml_extension(playbook.name.lower().replace(" ", "_"))
@@ -81,20 +78,12 @@ def _save(playbook: Playbook) -> None:
     console.print(f"[green]Saved to {path}[/]")
     if _ask_bool("Check it with ansible-playbook --syntax-check?", default=True):
         check_cmd(str(path))
-    if _ask_bool("Run it now?", default=False):
-        run_cmd(str(path))
 
 
 def _check_flow() -> None:
     from ansify.commands.check import check as check_cmd
 
     check_cmd(_ask_text("Playbook path"))
-
-
-def _run_flow() -> None:
-    from ansify.commands.run import run as run_cmd
-
-    run_cmd(_ask_text("Playbook path"))
 
 
 def _vault_flow() -> None:

@@ -11,27 +11,26 @@ each CLI workflow step by step, and how data flows through the code.
                 ┌────────────────────────────────────────────────┐
                 │                    USER (terminal)             │
                 └───────────────────────┬────────────────────────┘
-                                        │  ansify / ansify create / check / run / vault
+                                        │  ansify / ansify create / check / vault
                                         ▼
                                 ┌────────────────┐
                                 │  ansify/cli.py │   Typer app, command routing,
                                 └───────┬────────┘   --version, interactive hub
-                ┌───────────────────────┼───────────────────────┐
-                │                       │                       │
-                ▼                       ▼                       ▼
-        ┌───────────────┐      ┌───────────────┐      ┌─────────────────┐
-        │  commands/    │      │  commands/    │      │  commands/      │
-        │  create.py    │      │  check.py     │      │  run.py         │
-        │  (wizard)     │      │  run.py       │      │  vault.py       │
-        └───────┬───────┘      │  vault.py     │      └────────┬────────┘
-                │              └──────┬────────┘               │
-                │                     │                        │
-                ▼                     ▼                        ▼
+                ┌──────────────────────────┼──────────────────────────┐
+                │                          │                          │
+                ▼                          ▼
+        ┌───────────────┐      ┌────────────────────────┐
+        │  commands/    │      │  commands/             │
+        │  create.py    │      │  check.py + vault.py   │
+        │  (wizard)     │      └───────────┬────────────┘
+        └───────┬───────┘                  │
+                │                          │
+                ▼                          ▼
         ┌───────────────┐    ┌────────────────┐       ┌────────────────┐
         │  modules/     │    │  validators/   │       │  subprocess    │
-        │  18 defs      │    │  parser.py     │──────▶│  ansible-playbook
-        └──────┬────────┘    │  syntax.py     │       │  ansible-vault │
-               │             └────────────────┘       └────────────────┘
+        │  18 defs      │    │  parser.py     │──────▶│  ansible-vault │
+        └──────┬────────┘    │  syntax.py     │       └────────────────┘
+               │             └────────────────┘
                ▼                      ▲
         ┌───────────────┐            │  save to disk
         │  models/      │            │
@@ -83,8 +82,7 @@ Start
  ├─ 6. generate_yaml(playbook)           ──► generators/yaml_generator.py
  ├─ 7. PREVIEW in Rich panel
  ├─ 8. Save?                            ──► write_playbook (utils/yaml_writer.py)
- ├─ 9. Check with --syntax-check?       ──► commands/check.py
- └─ 10. Run now?                        ──► commands/run.py
+ └─ 9. Check with --syntax-check?       ──► commands/check.py
 ```
 
 ### 2.2 What happens inside each step
@@ -158,9 +156,9 @@ The custom representer is what keeps the output Ansible-safe:
 The preview is shown in a Rich panel **before** anything is written, so the
 user can abandon at any time without side effects.
 
-**Step 9–10 — Check / Run handoff.** Saving is followed by optional
-`check` and `run`, reusing the same code paths as the standalone commands
-(lazy imports keep `commands/` free of circular imports).
+**Step 9 — Check handoff.** Saving is followed by optional `check`, reusing
+the same code path as the standalone command (lazy imports keep `commands/`
+free of circular imports).
 
 ---
 
@@ -194,31 +192,7 @@ Two layers of validation:
 
 ---
 
-## 4. Workflow C — Run a playbook (`ansify run web.yml`)
-
-```
-run web.yml [-i inventory] [-t tags] [-e var]...
-        │
-        ▼
-build: ansible-playbook web.yml [-i inv] [-t tags] [-e v]
-        │
-        ▼
-subprocess.run (timed with time.monotonic)
-        │
-        ▼
-execution summary table: exit code | elapsed seconds | SUCCESS / FAILED
-        │
-        └── exit code propagated (non-zero → typer.Exit(code))
-```
-
-Ansible's own output streams straight to the terminal, so the user sees full
-task progress (`TASK [Install Apache] ... ok/changed/failed`). Ansify adds the
-summary table on top. If `ansible-playbook` is missing, the user gets a clear
-message instead of a traceback.
-
----
-
-## 5. Workflow D — Vault (`ansify vault encrypt/decrypt/view secrets.yml`)
+## 4. Workflow D — Vault (`ansify vault encrypt/decrypt/view secrets.yml`)
 
 ```
 ansify vault encrypt secrets.yml ──► subprocess ansible-vault encrypt secrets.yml
@@ -233,48 +207,49 @@ passes through Ansify.
 
 ---
 
-## 6. Workflow E — Interactive hub (`ansify` with no arguments)
+## 5. Workflow E — Interactive hub (`ansify` with no arguments)
 
 ```
 ansify
  └─ hub menu (loops):
      1 Create a playbook  ──► Workflow A
      2 Check a playbook   ──► ask path → Workflow B
-     3 Run a playbook     ──► ask path → Workflow C
-     4 Vault              ──► ask action + path → Workflow D
-     5 Quit
+     3 Vault              ──► ask action + path → Workflow D
+     4 Quit
 ```
 
 ---
 
-## 7. Example generated output (what the wizard produces)
+## 6. Example generated output (what the wizard produces)
 
 Input via the wizard: package `httpd` with verification, then service
 `httpd` started+enabled with verification.
 
 ```yaml
-name: Webserver Setup
-hosts: webservers
-become: true
-tasks:
-- name: Install Apache
-  ansible.builtin.package:
-    name: httpd
-    state: present
-- name: Gather package facts
-  ansible.builtin.package_facts: {}
-- name: Show package version
-  ansible.builtin.debug:
-    var: ansible_facts.packages['httpd']
-- name: Start httpd
-  ansible.builtin.service:
-    name: httpd
-    state: started
-    enabled: true
-  register: svc_result
-- name: Show service state
-  ansible.builtin.debug:
-    var: svc_result.state
+---
+- name: Webserver Setup
+  hosts: webservers
+  become: yes
+
+  tasks:
+    - name: Install Apache
+      ansible.builtin.package:
+        name: httpd
+        state: present
+    - name: Gather package facts
+      ansible.builtin.package_facts: {}
+    - name: Show package version
+      ansible.builtin.debug:
+        var: ansible_facts.packages['httpd']
+    - name: Start httpd
+      ansible.builtin.service:
+        name: httpd
+        state: started
+        enabled: 'yes'
+      register: svc_result
+    - name: Show service state
+      ansible.builtin.debug:
+        var: svc_result.state
 ```
 
 Notes:
@@ -296,9 +271,8 @@ object in `models/`. Verification steps are attached by `utils/verification.py`
 from the same module definitions. Only when the user says "Generate" does
 `generators/yaml_generator.py` serialize the object tree into YAML via a
 custom PyYAML dumper, and `utils/yaml_writer.py` writes it to disk. From that
-point on, `check`, `run`, and `vault` are thin, fault-tolerant subprocess
-wrappers around Ansible itself — Ansify never reimplements Ansible, it
-orchestrates it.
+point on, `check` and `vault` are thin, fault-tolerant subprocess wrappers
+around Ansible itself — Ansify never reimplements Ansible, it orchestrates it.
 
 ---
 
