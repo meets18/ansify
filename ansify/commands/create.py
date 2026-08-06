@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Optional
 
 import typer
@@ -83,7 +84,16 @@ def _save(playbook: Playbook) -> None:
 def _check_flow() -> None:
     from ansify.commands.check import check as check_cmd
 
-    check_cmd(_ask_text("Playbook path"))
+    candidates = sorted(Path.cwd().glob("*.yml")) + sorted(Path.cwd().glob("*.yaml"))
+    if not candidates:
+        err.print("[red]No playbooks (.yml/.yaml) found in the current directory.[/]")
+        return
+    names = [p.name for p in candidates]
+    pick = _menu("Select a playbook to check", [*names, "Enter path manually"])
+    if pick <= len(names):
+        check_cmd(str(candidates[pick - 1]))
+    else:
+        check_cmd(_ask_text("Playbook path"))
 
 
 def _vault_flow() -> None:
@@ -186,6 +196,12 @@ def _collect_task(module: ModuleDef, defaults: Optional[dict] = None) -> Task:
     name = _suggest_name(module, values)
     name = _ask_text("Task name", default=name) or name
     task = Task(name=name, module=effective_module, params=values)
+    registered = _ask_text(
+        "Register output as a variable? (optional, press Enter to skip)",
+        default="",
+    )
+    if registered:
+        task.register = registered
     if module.verify and _ask_bool(module.verify_prompt or "Add verification steps?", default=True):
         verification.apply_verification(task, module.verify)
     return task

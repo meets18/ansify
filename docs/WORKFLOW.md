@@ -73,9 +73,10 @@ Start
  │    │         bool/int conversion,         validates input, converts types)
  │    │         __module__ selection)
  │    ├─ d. Suggested task name          ──► task_name.format(**values)
- │    ├─ e. Add verification?            ──► apply_verification → VerifySteps
- │    ├─ f. "Task Added" panel
- │    └─ g. Next? Add / Edit / Delete / Reorder / Generate
+ │    ├─ e. Register output? (optional)  ──► task.register (Enter = skip)
+ │    ├─ f. Add verification?            ──► apply_verification → VerifySteps
+ │    ├─ g. "Task Added" panel
+ │    └─ h. Next? Add / Edit / Delete / Reorder / Generate
  │              └── Playbook.add_task / remove_task / move_task
  │
  ├─ 5. Filename (default: name.yml)     ──► ensure_yaml_extension
@@ -213,7 +214,7 @@ passes through Ansify.
 ansify
  └─ hub menu (loops):
      1 Create a playbook  ──► Workflow A
-     2 Check a playbook   ──► ask path → Workflow B
+     2 Check a playbook   ──► scan CWD for *.yml/*.yaml → pick → Workflow B
      3 Vault              ──► ask action + path → Workflow D
      4 Quit
 ```
@@ -245,7 +246,7 @@ Input via the wizard: package `httpd` with verification, then service
       ansible.builtin.service:
         name: httpd
         state: started
-        enabled: 'yes'
+        enabled: yes
       register: svc_result
     - name: Show service state
       ansible.builtin.debug:

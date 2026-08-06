@@ -277,12 +277,12 @@ Everything the user sees when running `ansify` / `ansify create`.
 | `_delete_task()` / `_reorder_task()` | Thin wrappers over `Playbook.remove_task` / `move_task` |
 | `_pick_task()` / `_list_tasks()` | Shows the task list with numbers and returns the picked index |
 | `_pick_module()` | Two-level menu: category → module, walking `CATEGORIES` |
-| `_collect_task(module, defaults)` | **The generic engine**: loops over `module.fields`, skipping fields whose `condition`/`if_module` doesn't match, converts `bool` fields to Python booleans and `int` fields to integers, handles the `__module__` field (command vs shell), builds the `Task`, suggests a name from `task_name.format(**values)`, then optionally calls `apply_verification` |
+| `_collect_task(module, defaults)` | **The generic engine**: loops over `module.fields`, skipping fields whose `condition`/`if_module` doesn't match, converts `bool` fields to Python booleans and `int` fields to integers, handles the `__module__` field (command vs shell), builds the `Task`, suggests a name from `task_name.format(**values)`, asks for an optional **register** variable (Enter = skip), then optionally calls `apply_verification` |
 | `_suggest_name()` | Formats the module's `task_name` template with collected values; falls back to the module label if a placeholder is missing |
 | `_ask_field()` | One prompt per field kind: choice → numbered menu, bool → yes/no confirm, int → integer validation loop, multiline → lines until an empty line, text/optional → plain prompt with required-loop |
 | `_ask_text` / `_ask_bool` / `_ask_multiline` / `_menu` / `_menu_multi` | Low-level I/O helpers over `typer.prompt`/`typer.confirm` with Rich-printed menus and error messages; `_menu_multi` accepts several numbers (e.g. `1,3`) and returns the matching options |
 | `_ask_hosts()` | Optionally reads an inventory file via `inventory_reader` to offer group names plus an always-present `all` option; multi-select (`1,3`) — choosing `all` wins, multiple groups are joined with commas (`web,db`); falls back to manual entry (default `all`) |
-| `_check_flow` / `_vault_flow` | Hub sub-menus that delegate to the other commands (lazy imports avoid circular imports) |
+| `_check_flow` / `_vault_flow` | Hub sub-menus that delegate to the other commands (lazy imports avoid circular imports). `_check_flow` scans the current directory for `*.yml`/`*.yaml` files and offers them as a menu (with a "Enter path manually" fallback); if none are found it says so and returns |
 
 ### `ansify/commands/check.py`
 | Function | What it does |
@@ -320,7 +320,7 @@ Turns a module's `VerifyStep` definitions into real verification tasks.
 
 | Function | What it does |
 |---|---|
-| `apply_verification(task, steps)` | For each step: if `step.register` is set, assigns it to `task.register` (main task stores its result). Formats `{field}` placeholders in params from the **main task's own params** (e.g. `"ansible_facts.packages['{name}']"` → `['httpd']`). Appends each as a `Task` to `task.verify` |
+| `apply_verification(task, steps)` | For each step: if `step.register` is set, assigns it to `task.register` — unless the user already registered a variable, which takes precedence and replaces the built-in name inside step params (e.g. `svc_result.state` → `myvar.state`). Formats `{field}` placeholders in params from the **main task's own params** (e.g. `"ansible_facts.packages['{name}']"` → `['httpd']`). Appends each as a `Task` to `task.verify` |
 | `_format(value, context)` | `str.format_map` with `KeyError` fallback — never crashes on a missing placeholder |
 
 This is what replaces "ad-hoc verification commands": `package` → `package_facts` + `debug`, `service`/`firewalld` → `register` + `debug`.
