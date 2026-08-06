@@ -9,6 +9,7 @@ import typer
 from rich.console import Console
 from rich.panel import Panel
 
+from ansify import __version__
 from ansify.generators.yaml_generator import generate_yaml
 from ansify.models.playbook import Playbook
 from ansify.models.task import Task
@@ -42,9 +43,17 @@ def create() -> None:
     _save(playbook)
 
 
+_BANNER = """    _    _   _ ____ ___ _______   __
+   / \\  | \\ | / ___|_ _|  ___\\ \\ / /
+  / _ \\ |  \\| \\___ \\| || |_   \\ V /
+ / ___ \\| |\\  |___) | ||  _|   | |
+/_/   \\_\\_| \\_|____/___|_|     |_|"""
+
+
 def menu() -> None:
     """Interactive hub shown when running `ansify` with no arguments."""
-    console.print(Panel.fit("Ansify - interactive Ansible workflows", style="bold cyan"))
+    console.print(_BANNER, style="bold cyan")
+    console.print(f"Ansible playbook tool - v{__version__}\n", style="dim")
     while True:
         choice = _menu(
             "Choose an action",
