@@ -11,8 +11,13 @@ playbook generation, validation, and Vault management.
   modules (User, Group, Package, Service, File, Copy, Template, Lineinfile,
   Replace, SELinux, Firewalld, Cron, Mount, LVM, Reboot, Wait For, Command/Shell,
   Authorized Key), with built-in per-module verification tasks.
+  - Host selection from an inventory with **multi-select groups** (an `all`
+    option is always available; several groups join as `web,db`)
+  - **Register output** of any task as a variable for later use
+  - Delete-aware task names (`state: absent` → "Delete user bob", "Remove httpd")
 - **Check** — local YAML validation plus `ansible-playbook --syntax-check` with
-  simplified error output.
+  simplified error output; the hub flow lists playbooks found in the current
+  directory instead of asking for a path.
 - **Vault** — encrypt, decrypt, and view secrets via `ansible-vault`.
 
 ## Install (GitHub Releases)

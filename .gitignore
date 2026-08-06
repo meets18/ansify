@@ -19,6 +19,31 @@ venv.bak/
 
 # Test files
 tests/
+test_*.py
+*_test.py
+test-*.yml
+*-test.yml
+*_test.yml
+
+# Documentation (kept local, not shipped)
+docs/
+
+# Sensitive files
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+id_rsa
+id_rsa.pub
+*.vault
+secrets*.yml
+secrets*.yaml
+*.secret
+.htpasswd
+credential*
 
 # Tooling / build artifacts
 .pytest_cache/
