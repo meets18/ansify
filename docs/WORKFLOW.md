@@ -73,7 +73,7 @@ Start
  │    │         bool/int conversion,         validates input, converts types)
  │    │         __module__ selection)
  │    ├─ d. Suggested task name          ──► task_name.format(**values)
- │    ├─ e. Register output? (optional)  ──► task.register (Enter = skip)
+ │    ├─ e. Register output? [y/N]        ──► task.register (then name)
  │    ├─ f. Add verification?            ──► apply_verification → VerifySteps
  │    ├─ g. "Task Added" panel
  │    └─ h. Next? Add / Edit / Delete / Reorder / Generate

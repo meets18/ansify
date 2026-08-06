@@ -196,12 +196,13 @@ def _collect_task(module: ModuleDef, defaults: Optional[dict] = None) -> Task:
     name = _suggest_name(module, values)
     name = _ask_text("Task name", default=name) or name
     task = Task(name=name, module=effective_module, params=values)
-    registered = _ask_text(
-        "Register output as a variable? (optional, press Enter to skip)",
-        default="",
-    )
-    if registered:
-        task.register = registered
+    if _ask_bool("Register this task's output?", default=False):
+        while True:
+            registered = _ask_text("Variable name", default="")
+            if registered:
+                task.register = registered
+                break
+            err.print("[red]Variable name cannot be empty.[/]")
     if module.verify and _ask_bool(module.verify_prompt or "Add verification steps?", default=True):
         verification.apply_verification(task, module.verify)
     return task
